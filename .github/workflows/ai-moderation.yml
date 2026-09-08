@@ -1,0 +1,37 @@
+name: AI Comment Moderation
+
+on:
+  discussion_comment:
+    types: [created, edited]
+
+permissions:
+  contents: read
+  discussions: write
+
+jobs:
+  moderate:
+    # 防止机器人自己的操作形成循环
+    if: github.actor != 'github-actions[bot]'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Review comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_API_URL: ${{ secrets.AI_API_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+
+        run: python .github/scripts/moderate.py
